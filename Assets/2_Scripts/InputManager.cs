@@ -10,4 +10,12 @@ public class InputManager : MonoBehaviour
     {
         Instance = this;
     }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.A) == true)
+        {
+            NoteManager.Instance.OnInput(KeyCode.A);
+        }
+    }
 }
