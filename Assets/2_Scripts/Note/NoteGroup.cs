@@ -1,37 +1,50 @@
-using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class NoteGroup : MonoBehaviour
 {
     [SerializeField] private int noteMaxNum = 5;
-    [SerializeField] private GameObject notePrefab = null;
-    [SerializeField] private GameObject noteSpwan;
-    [SerializeField] private float noteGap = 4f;
+    [SerializeField] private GameObject notePrefab;
+    [SerializeField] private GameObject noteSpawn;
+    [SerializeField] private float noteGap = 6f;
 
-    [SerializeField] private SpriteRenderer btnSpriteRenderer;
+    [SerializeField] private SpriteRenderer btnSpriteRender;
     [SerializeField] private Sprite normalBtnSprite;
-    [SerializeField] private Sprite selectBntSprite;
+    [SerializeField] private Sprite SelectBtnSprite;
+    [SerializeField] private TextMeshPro keyCodeTmp;
     [SerializeField] private Animation anim;
-
-    private List<Note> noteList = new List<Note>();
-
-    private void Start()
+    private KeyCode keyCode;
+    public KeyCode KeyCode
     {
-        for (int i = 0; i < noteMaxNum; i++) 
-        {
-            SpwanNote(true);
+        get { 
+            return keyCode;
         }
     }
 
-    private void SpwanNote(bool isApple)
+    private List<Note> noteList = new List<Note>();
+
+    public void Create(KeyCode keyCode)
+    {
+        this.keyCode = keyCode;
+        keyCodeTmp.text = keyCode.ToString();
+
+        for (int i = 0; i < noteMaxNum; i++)
+        {
+            CreateNote(true);
+        }
+
+        InputManager.Instance.AddKeyCode(keyCode);
+    }
+
+    private void CreateNote(bool isApple)
     {
         GameObject noteGameObj = Instantiate(notePrefab);
-        noteGameObj.transform.SetParent(noteSpwan.transform);
+        noteGameObj.transform.SetParent(noteSpawn.transform);
         noteGameObj.transform.localPosition = Vector3.up * noteList.Count * noteGap;
-        
         Note note = noteGameObj.GetComponent<Note>();
         note.SetSprite(isApple);
 
@@ -40,23 +53,28 @@ public class NoteGroup : MonoBehaviour
 
     public void OnInput(bool isApple)
     {
-        
-        Note delNote = noteList[0];
-        delNote.Destroy();
-        noteList.RemoveAt(0);
+        //노트 삭제
+        if (noteList.Count > 0)
+        {
+            Note delNote = noteList[0];
+            delNote.CalScoreAndDeleteNote();
+            noteList.RemoveAt(0);
+        }
 
-        for (int i = 0; i < noteList.Count;i++)
+        //정렬
+        for (int i = 0; i < noteList.Count; i++)
             noteList[i].transform.localPosition = Vector3.up * i * noteGap;
 
-        SpwanNote(isApple);
+        //생성
+        CreateNote(isApple);
 
+        //노트 애니메이션
         anim.Play();
-        btnSpriteRenderer.sprite = selectBntSprite;
-
+        btnSpriteRender.sprite = SelectBtnSprite;
     }
 
     public void callAniDone()
     {
-        btnSpriteRenderer.sprite = normalBtnSprite;
+        btnSpriteRender.sprite = normalBtnSprite;
     }
 }
